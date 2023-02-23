@@ -6,7 +6,6 @@ import {
   ClassState,
   EduClassroomConfig,
   EduRoleTypeEnum,
-  EduRoomServiceTypeEnum,
   LeaveReason,
   RecordMode,
   RecordStatus,
@@ -200,19 +199,6 @@ export class NavigationBarUIStore extends EduUIStoreBase {
         });
       },
     };
-
-    // 合流转推场景&&学生角色
-    const isMixStreamCDNModelStudent =
-      EduClassroomConfig.shared.sessionInfo.role !== EduRoleTypeEnum.teacher &&
-      EduClassroomConfig.shared.sessionInfo.roomServiceType === EduRoomServiceTypeEnum.MixStreamCDN;
-
-    // 伪直播
-    const isHostingScene =
-      EduClassroomConfig.shared.sessionInfo.roomServiceType === EduRoomServiceTypeEnum.HostingScene;
-
-    if (isMixStreamCDNModelStudent || isHostingScene) {
-      return [exitAction];
-    }
 
     const teacherActions: EduNavAction<EduNavRecordActionPayload>[] = [
       {
