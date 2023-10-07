@@ -1,12 +1,4 @@
 import {
-  AgoraProctorSDK,
-  AgoraExtensionWidgetEvent,
-  AgoraMultiInstanceWidget,
-  AgoraTrackSyncedWidget,
-  AgoraWidgetBase,
-  AgoraWidgetLifecycle,
-} from '@proctor/infra/api';
-import {
   AgoraWidgetController,
   AgoraWidgetTrack,
   ClassState,
@@ -19,8 +11,15 @@ import md5 from 'js-md5';
 import { cloneDeep } from 'lodash';
 import { action, computed, IReactionDisposer, Lambda, observable, reaction } from 'mobx';
 import { EduUIStoreBase } from '../base';
-import { AgoraWidgetTrackMode } from './type';
-import { AgoraWidgetTrackController } from './widget-track';
+import {
+  AgoraMultiInstanceWidget,
+  AgoraWidgetTrackSynced,
+  AgoraCloudClassWidget as AgoraWidgetBase,
+  AgoraWidgetLifecycle,
+  AgoraWidgetTrackController,
+  AgoraWidgetTrackMode,
+} from 'agora-common-libs';
+import { AgoraExtensionWidgetEvent, AgoraProctorSDK } from '@proctor/infra/api';
 
 @Log.attach({ proxyMethods: false })
 export class WidgetUIStore extends EduUIStoreBase {
@@ -204,16 +203,16 @@ export class WidgetUIStore extends EduUIStoreBase {
   }
 
   private _callWidgetUpdateTrack(widget: AgoraWidgetBase, trackProps: unknown) {
-    if ((widget as unknown as AgoraTrackSyncedWidget).updateToLocal) {
-      (widget as unknown as AgoraTrackSyncedWidget).updateToLocal(trackProps as AgoraWidgetTrack);
-      (widget as unknown as AgoraTrackSyncedWidget).updateZIndexToLocal(
+    if ((widget as unknown as AgoraWidgetTrackSynced).updateToLocal) {
+      (widget as unknown as AgoraWidgetTrackSynced).updateToLocal(trackProps as AgoraWidgetTrack);
+      (widget as unknown as AgoraWidgetTrackSynced).updateZIndexToLocal(
         (trackProps as AgoraWidgetTrack).zIndex ?? 0,
       );
     }
   }
 
   private _getWidgetTrackMode(widget: AgoraWidgetBase) {
-    return (widget as unknown as AgoraTrackSyncedWidget).trackMode;
+    return (widget as unknown as AgoraWidgetTrackSynced).trackMode;
   }
 
   private _callWidgetInstall(widget: AgoraWidgetBase, controller: AgoraWidgetController) {
@@ -291,7 +290,6 @@ export class WidgetUIStore extends EduUIStoreBase {
 
     this._registeredWidgets = this._getEnabledWidgets();
 
-    this.classroomStore.widgetStore.addWidgetStateListener(this._stateListener);
     // switch between widget controllers of scenes
     this._disposers.push(
       reaction(
@@ -334,6 +332,8 @@ export class WidgetUIStore extends EduUIStoreBase {
               messageType: AgoraExtensionWidgetEvent.WidgetBecomeInactive,
               onMessage: this._handleBecomeInactive,
             });
+
+            oldController.removeWidgetStateListener(this._stateListener);
           }
           // install widgets
           if (controller) {
@@ -349,6 +349,7 @@ export class WidgetUIStore extends EduUIStoreBase {
               messageType: AgoraExtensionWidgetEvent.WidgetBecomeInactive,
               onMessage: this._handleBecomeInactive,
             });
+            controller.addWidgetStateListener(this._stateListener);
           }
         },
       ),

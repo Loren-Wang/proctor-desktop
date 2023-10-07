@@ -1,6 +1,5 @@
 import { AgoraProctorSDK, WindowID } from '@proctor/infra/api';
 import { getEduErrorMessage, getErrorServCode } from '@proctor/infra/utils/error';
-import { sendToMainProcess } from '@proctor/infra/utils/ipc';
 import { ChannelType } from '@proctor/infra/utils/ipc-channels';
 import { transI18n } from 'agora-common-libs';
 import { AGError, AGRteErrorCode, bound, Lodash, Log, Logger, Scheduler } from 'agora-rte-sdk';
@@ -75,7 +74,12 @@ export class EduShareUIStore {
    * 视口尺寸信息
    */
   @observable
-  classroomViewportSize: { width: number; height: number; h5Width?: number; h5Height?: number } = {
+  classroomViewportSize: {
+    width: number;
+    height: number;
+    h5Width?: number;
+    h5Height?: number;
+  } = {
     width: 0,
     height: 0,
     h5Width: 1024,
@@ -145,6 +149,11 @@ export class EduShareUIStore {
       error.codeList.includes(AGRteErrorCode.RTE_ERR_RESTFUL_NETWORK_TIMEOUT_ERR)
     ) {
       message = transI18n('error.network_timeout');
+    } else if (
+      error.codeList &&
+      error.codeList.includes(AGRteErrorCode.RTE_ERR_RESTFUL_LIMIT_EXCEED_ERR)
+    ) {
+      message = transI18n('error.request_limit_exceeded');
     } else {
       message = getEduErrorMessage(error) || message;
     }
@@ -273,7 +282,10 @@ export class EduShareUIStore {
         scopeSize.width >= this._classroomMinimumSize.width ||
         scopeSize.height >= this._classroomMinimumSize.height
       ) {
-        this.classroomViewportSize = { width: scopeSize.width, height: scopeSize.height };
+        this.classroomViewportSize = {
+          width: scopeSize.width,
+          height: scopeSize.height,
+        };
       } else {
         this.classroomViewportSize = {
           width: this._classroomMinimumSize.width,
@@ -333,45 +345,6 @@ export class EduShareUIStore {
   @bound
   removeOrientationchange() {
     this._matchMedia.removeListener(this.handleOrientationchange);
-  }
-
-  @bound
-  showWindow(windowID: WindowID) {
-    sendToMainProcess(ChannelType.ShowBrowserWindow, windowID);
-  }
-
-  @bound
-  hideWindow(windowID: WindowID) {
-    sendToMainProcess(ChannelType.HideBrowserWindow, windowID);
-  }
-
-  @bound
-  openWindow(
-    windowID: WindowID,
-    payload: {
-      args?: Record<string, string | number | boolean>;
-      options?: Record<string, string | number | boolean>;
-    },
-  ) {
-    sendToMainProcess(
-      ChannelType.OpenBrowserWindow,
-      windowID,
-      payload.args,
-      payload.options,
-      AgoraProctorSDK.language,
-    );
-  }
-  @bound
-  moveWindowToTargetScreen(
-    windowID: WindowID,
-    screenId: string,
-    options: Record<string, string | number | boolean>,
-  ) {
-    sendToMainProcess(ChannelType.MoveWindowToTargetScreen, windowID, screenId, options);
-  }
-  @bound
-  closeWindow(windowID: WindowID) {
-    sendToMainProcess(ChannelType.CloseBrowserWindow, windowID);
   }
 
   @bound

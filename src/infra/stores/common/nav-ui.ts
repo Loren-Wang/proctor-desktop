@@ -6,6 +6,7 @@ import {
   ClassState,
   EduClassroomConfig,
   EduRoleTypeEnum,
+  EduUserStruct,
   LeaveReason,
   RecordMode,
   RecordStatus,
@@ -551,9 +552,7 @@ export class NavigationBarUIStore extends EduUIStoreBase {
   get networkQualityClass(): string {
     switch (this.networkQuality) {
       case AGNetworkQuality.good:
-      case AGNetworkQuality.great:
         return 'excellent';
-      case AGNetworkQuality.poor:
       case AGNetworkQuality.bad:
         return 'bad';
       case AGNetworkQuality.down:
@@ -570,12 +569,10 @@ export class NavigationBarUIStore extends EduUIStoreBase {
   get networkQualityIcon(): { icon: SvgIconEnum; color: string } {
     switch (this.networkQuality) {
       case AGNetworkQuality.good:
-      case AGNetworkQuality.great:
         return {
           icon: SvgIconEnum.NORMAL_SIGNAL,
           color: NetworkStateColors.normal,
         };
-      case AGNetworkQuality.poor:
       case AGNetworkQuality.bad:
         return { icon: SvgIconEnum.BAD_SIGNAL, color: NetworkStateColors.bad };
       case AGNetworkQuality.down:
@@ -595,9 +592,7 @@ export class NavigationBarUIStore extends EduUIStoreBase {
   get networkQualityLabel(): string {
     switch (this.networkQuality) {
       case AGNetworkQuality.good:
-      case AGNetworkQuality.great:
         return transI18n('nav.signal_excellent');
-      case AGNetworkQuality.poor:
       case AGNetworkQuality.bad:
         return transI18n('nav.signal_bad');
       case AGNetworkQuality.down:
@@ -692,13 +687,10 @@ export class NavigationBarUIStore extends EduUIStoreBase {
     }
 
     if (hasPublishedScreenStream || hasPublishedCameraStream || hasPublishedMicStream) {
-      return Math.min(
-        downlinkNetworkQuality || AGNetworkQuality.unknown,
-        uplinkNetworkQuality || AGNetworkQuality.unknown,
-      ) as AGNetworkQuality;
+      return Math.min(downlinkNetworkQuality, uplinkNetworkQuality) as AGNetworkQuality;
     }
 
-    return downlinkNetworkQuality || AGNetworkQuality.unknown;
+    return downlinkNetworkQuality;
   }
 
   /**
@@ -727,11 +719,15 @@ export class NavigationBarUIStore extends EduUIStoreBase {
    */
   @computed
   get currScreenShareTitle() {
-    const currSharedUser = this.classroomStore.remoteControlStore.currSharedUser;
-    if (currSharedUser)
+    const { teacherList } = this.classroomStore.userStore;
+    const { isScreenSharing } = this.classroomStore.roomStore;
+    if (isScreenSharing && teacherList.size) {
+      const user = teacherList.values().next().value as EduUserStruct;
+
       return `${transI18n('fcr_share_sharing', {
-        reason: currSharedUser.userName,
+        reason: user.userName,
       })}`;
+    }
   }
   /**
    * 所在房间名称
