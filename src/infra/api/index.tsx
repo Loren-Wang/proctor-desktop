@@ -8,8 +8,9 @@ import {
   EduRoleTypeEnum,
   EduRoomTypeEnum,
   Platform,
+  AgoraCloudProxyType,
 } from 'agora-edu-core';
-import { ApiBase, useHLS } from 'agora-rte-sdk';
+import { ApiBase, Logger, useHLS } from 'agora-rte-sdk';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { render, unmountComponentAtNode } from 'react-dom';
@@ -40,6 +41,7 @@ import { FcrMultiThemeMode, FcrTheme, FcrUIConfig } from 'agora-common-libs';
 import { AgoraCloudClassWidget as AgoraWidgetBase } from 'agora-common-libs';
 import '@proctor/ui-kit/styles/global.css';
 import HLS from 'hls.js';
+import { isLocked, lock, unlock } from './lock';
 export * from './type';
 export class AgoraProctorSDK {
   private static _config: any = {};
@@ -53,6 +55,7 @@ export class AgoraProctorSDK {
   //default use GLOBAL region(including CN)
   private static region: EduRegion = EduRegion.CN;
   private static _checkStudentScreenShareState?: boolean = true;
+  private static _cloudProxy?: AgoraCloudProxyType;
   private static _convertRegion(region: string): EduRegion {
     switch (region) {
       case 'CN':
@@ -174,6 +177,10 @@ export class AgoraProctorSDK {
     return this._checkStudentScreenShareState;
   }
 
+  static get cloudProxy() {
+    return this._cloudProxy;
+  }
+
   private static _validateOptions(option: LaunchOption) {
     const isInvalid = (value: string) => value === undefined || value === null || value === '';
 
@@ -207,10 +214,23 @@ export class AgoraProctorSDK {
       throw new Error('AgoraProctorSDK: roomName is required');
     } else if (isInvalid(option.roomUuid)) {
       throw new Error('AgoraProctorSDK: roomUuid is required');
+    } else if (
+      typeof option.cloudProxy !== 'undefined' &&
+      ![AgoraCloudProxyType.None, AgoraCloudProxyType.TCP, AgoraCloudProxyType.UDP]
+    ) {
+      throw new Error(`AgoraEduSDK: ${option.cloudProxy} is not valid value for cloudProxy`);
     }
   }
 
   static launch(dom: HTMLElement, option: LaunchOption) {
+    if (isLocked()) {
+      Logger.error(
+        '[AgoraProctorSDK]failed to launch as you have already launched a proctor, you need to destory it by call the function returned by the launch method before you relaunch it',
+      );
+      return () => {
+        /** noop */
+      };
+    }
     EduContext.reset();
     useHLS(HLS);
     this._validateOptions(option);
@@ -303,8 +323,10 @@ export class AgoraProctorSDK {
       </Providers>,
       dom,
     );
+    lock();
     return () => {
       unmountComponentAtNode(dom);
+      unlock();
     };
   }
 
