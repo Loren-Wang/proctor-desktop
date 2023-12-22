@@ -215,10 +215,10 @@ export class AgoraProctorSDK {
     } else if (isInvalid(option.roomUuid)) {
       throw new Error('AgoraProctorSDK: roomUuid is required');
     } else if (
-      typeof option.cloudProxy !== 'undefined' &&
-      ![AgoraCloudProxyType.None, AgoraCloudProxyType.TCP, AgoraCloudProxyType.UDP]
+      typeof option.rtcCloudProxyType !== 'undefined' &&
+      ![AgoraCloudProxyType.Automatic, AgoraCloudProxyType.TCP, AgoraCloudProxyType.UDP]
     ) {
-      throw new Error(`AgoraEduSDK: ${option.cloudProxy} is not valid value for cloudProxy`);
+      throw new Error(`AgoraEduSDK: ${option.rtcCloudProxyType} is not valid value for cloudProxy`);
     }
   }
 
@@ -284,6 +284,8 @@ export class AgoraProctorSDK {
             noDevicePermission: roleType === EduRoleTypeEnum.invisible,
           },
         },
+        rtcCloudProxyType: option.rtcCloudProxyType,
+        rtmCloudProxyEnabled: option.rtmCloudProxyEnabled,
       },
       platform,
       {

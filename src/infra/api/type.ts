@@ -87,7 +87,8 @@ export type LaunchOption = {
   uiMode?: FcrMultiThemeMode;
   shareUrl?: string; // 分享URL
   checkStudentScreenShareState?: boolean;
-  cloudProxy?: AgoraCloudProxyType; //云代理
+  rtcCloudProxyType?: AgoraCloudProxyType; // RTC 云代理类型
+  rtmCloudProxyEnabled?: boolean; // 是否开启 RTM 云代理
 };
 
 /**
