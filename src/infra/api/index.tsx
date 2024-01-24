@@ -60,7 +60,7 @@ export class AgoraProctorSDK {
     switch (region) {
       case 'CN':
         return EduRegion.CN;
-      case 'AS':
+      case 'AP':
         return EduRegion.AP;
       case 'EU':
         return EduRegion.EU;
@@ -70,7 +70,11 @@ export class AgoraProctorSDK {
     return region as EduRegion;
   }
   private static _convertMediaOptions(opts?: LaunchMediaOptions): ConvertMediaOptionsConfig {
-    const config: ConvertMediaOptionsConfig = {};
+    const config: ConvertMediaOptionsConfig = {
+      web: {
+        codec: 'h264',
+      },
+    };
 
     if (opts) {
       const {
@@ -81,6 +85,7 @@ export class AgoraProctorSDK {
         channelProfile,
         web,
       } = opts;
+
       if (cameraEncoderConfiguration) {
         config.defaultCameraEncoderConfigurations = {
           ...cameraEncoderConfiguration,

@@ -25,10 +25,10 @@ export class MediaController {
 
   mediaPlyrMap: Map<MediaDeviceType, MediaInstance> = new Map();
 
-  @observable totalDuration: number = 0;
-  @observable currentTime: number = 0;
-  @observable isPlaying: boolean = false;
-  private _lastReloadTime: number = 0;
+  @observable totalDuration = 0;
+  @observable currentTime = 0;
+  @observable isPlaying = false;
+  private _lastReloadTime = 0;
   private _reloadTask: Scheduler.Task | null = null;
   private _syncTask: Scheduler.Task | null = null;
   get mainScreenPlyr() {

@@ -81,7 +81,10 @@ export const Select: FC<SelectProps> = ({
           onClick={(e) => {
             e.preventDefault();
           }}
-          onMouseDown={handleFocus}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            handleFocus();
+          }}
           onFocus={handleFocus}
           onBlur={handleBlur}>
           <span className={'fcr-truncate'}>{selectedText}</span>
